@@ -16,7 +16,7 @@ pipeline {
     }
     parameters {
         string(name: 'idtag', defaultValue: '', description: 'Enter a custom Analysis Id (No Spaces!) or a default [YYMMDD_HHMMSS] will be created')
-        choice(name: 'Baseline',
+        choice(name: 'baseline',
                choices: [
                    'TTWCS_Baseline_5_6_1',
                    'TTWCS_Baseline_5_6_0'
@@ -29,7 +29,7 @@ pipeline {
         stage('Init') {
             steps {
                 echo 'Stage: Init'
-                echo "branch=${env.BRANCH_NAME}, params.idtag=${params.idtag}, baseline=${params.Baseline}"
+                echo "branch=${env.BRANCH_NAME}, params.idtag=${params.idtag}, baseline=${params.baseline}"
                 script {
                     if (params.idtag == null || params.idtag == '') {
                         idtag = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())
@@ -53,27 +53,13 @@ pipeline {
                          ])
             }
         }
-/*
-        stage('Transfer Data') {
-            steps {
-                echo "Stage: Transfer Data"
-                echo "***************** Duplicate function !!!!!!!!!!!!!!!!!!!!"
-                dir('common') {
-                    // Transfer DX data from TTWCS to AM
-                    sh '''
-                    ./transfer_data_to_am.sh
-                    '''
-                }
-            }
-        }
-*/
         stage('Run Local ETL') {
             steps {
                 echo 'Stage: Run Local ETL'
                 dir('common') {
                     sh """
                     ls -l
-                    ./am_run_local_etl.sh ${idtag} ${params.Baseline}
+                    ./am_run_local_etl.sh ${idtag} ${params.baseline}
                     """
                 }
             }
@@ -83,7 +69,7 @@ pipeline {
                 echo 'Stage: Run Local Analysis'
                 dir('common') {
                     sh """
-                    ./am_run_local_analysis.sh ${idtag} ${params.Baseline}
+                    ./am_run_local_analysis.sh ${idtag} ${params.baseline}
                     """
                 }
             }

@@ -15,7 +15,13 @@ pipeline {
         PATH = "/usr/local/bin:$PATH"
     }
     parameters {
-         string(name: 'idtag', defaultValue: '', description: 'Enter a custom Analysis Id (No Spaces!) or a default [YYMMDD_HHMMSS] will be created')
+        string(name: 'idtag', defaultValue: '', description: 'Enter a custom Analysis Id (No Spaces!) or a default [YYMMDD_HHMMSS] will be created')
+        choice(name: 'Baseline',
+               choices: [
+                   'TTWCS_Baseline_5_6_1',
+                   'TTWCS_Baseline_5_6_0'
+               ],
+               description: 'Baseline')
     }
 
     stages {
@@ -23,7 +29,7 @@ pipeline {
         stage('Init') {
             steps {
                 echo 'Stage: Init'
-                echo "branch=${env.BRANCH_NAME}, params.idtag=${params.idtag}"
+                echo "branch=${env.BRANCH_NAME}, params.idtag=${params.idtag}, baseline=${params.Baseline}"
                 script {
                     if (params.idtag == null || params.idtag == '') {
                         idtag = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())
@@ -67,7 +73,7 @@ pipeline {
                 dir('common') {
                     sh """
                     ls -l
-                    ./am_run_local_etl.sh ${idtag}
+                    ./am_run_local_etl.sh ${idtag} ${params.Baseline}
                     """
                 }
             }
@@ -77,7 +83,7 @@ pipeline {
                 echo 'Stage: Run Local Analysis'
                 dir('common') {
                     sh """
-                    ./am_run_local_analysis.sh ${idtag}
+                    ./am_run_local_analysis.sh ${idtag} ${params.Baseline}
                     """
                 }
             }
